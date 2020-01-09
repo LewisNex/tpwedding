@@ -4,7 +4,7 @@ from flask_mail import Mail, Message
 import os
 
 app = Flask(__name__, static_folder='webpage')
-mail = Mail(app)
+
 
 app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER')
 app.config['MAIL_PORT'] = os.environ.get('MAIL_PORT')
@@ -12,6 +12,7 @@ app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
 
+mail = Mail(app)
 # Serve static page
 @app.route('/', defaults={'path': ''}, methods=['GET'])
 @app.route('/<path:path>')
@@ -29,13 +30,15 @@ def submit():
         try:
             mail.send(
                 Message(
-                    body="RSVP from {name} at {email}.",
-                    recipients=app.config['MAIL_USERNAME'],
-                    subject="RSVP from {name}"
+                    body=f"RSVP from {name} at {email}.",
+                    sender=app.config['MAIL_USERNAME'],
+                    recipients=[app.config['MAIL_USERNAME']],
+                    subject=f"RSVP from {name}"
                 )
             )
             return send_from_directory(app.static_folder, 'success.html')
-        except:
+        except Exception as e:
+            print(e)
             return send_from_directory(app.static_folder, 'failure.html')
     return send_from_directory(app.static_folder, 'failure.html')
 
